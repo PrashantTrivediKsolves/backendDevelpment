@@ -2,7 +2,6 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser'); 
 const db=require('./db');
-require('dotenv').config();
 
 const Person=require('./models/person');
 const Menu=require('./models/menu');
@@ -26,7 +25,7 @@ const Menu=require('./models/menu');
    
 //     res.send(customized_idli);
 // })
-
+app.use(bodyParser.json());
 // app.post('/person',async(req,res)=>
 // {
 //     try{
@@ -80,62 +79,62 @@ const Menu=require('./models/menu');
 //         console.log(err);
 //         res.status(500).json({error:"Internal server error"});
 //     }
-
+    
 // })
-// const passport=require('passport');
-// const LocalStrategy=require('passport-local').Strategy;
-// // user name and password strategy
+const passport=require('passport');
+const LocalStrategy=require('passport-local').Strategy;// user name and password strategy
 
-// // middle ware function.
 
-// const logRequest=(req,res,next)=>
-// {
-//     console.log(`[${new Date().toLocaleString()}] Request Made to :${req.originalUrl}`);
 
-//     next();
-// }
-// app.use(logRequest);
+// middle ware function.
 
-// // Authentication
+const logRequest=(req,res,next)=>
+{
+    console.log(`[${new Date().toLocaleString()}] Request Made to :${req.originalUrl}`);
 
-// //http://localhost:3000/?username=prashant&password=prashant@123
+    next();
+}
+app.use(logRequest);
 
-// passport.use(new LocalStrategy(async (USERNAME,password,done)=>
-// {
-//     // authenticaton  logic here............
-//     try{
-//         console.log("Recieved credentials:",USERNAME,password);
-//         const user=await Person.findOne({username:USERNAME});
-//         if(!user)
-//         {
-//             return done(null,false,{message:"Incorrect username."});
-//         }
-//         const ispasswordMatch=user.password===password?true:false;
-//         if(ispasswordMatch)
-//         {
-//             return done(null,user);
-//         }
-//         else
-//         {
-//             return done(null,false,{message:"Incorrect username."});
-//         }
-//     }
-//     catch(err)
-//     {
-//         return done(err);
-//     }
+// Authentication
 
-// }))
-app.use(bodyParser.json());
-const PORT=process.env.PORT||3001;
-const passport=require('./Auth');
+passport.use(new LocalStrategy(async (USERNAME,password,done)=>
+{
+    // authenticaton  logic here............
+    
+    try{
+        console.log("Recieved credentials:",USERNAME,password);
+        const user=await Person.findOne({username:USERNAME});
+        if(!user)
+        {
+            return done(null,false,{message:"Incorrect username."});
+        }
+        const ispasswordMatch=user.password===password?true:false;
+        if(ispasswordMatch)
+        {
+            return done(null,user);
+        }
+        else
+        {
+            return done(null,false,{message:"Incorrect username."});
+        }
+    }
+    catch(err)
+    {
+        return done(err);
+    }
+
+}))
+
 app.use(passport.initialize());
-const LocalAuthmiddleware=passport.authenticate('local',{session:false});
 //passport.authenticate('local',{session:false});
-app.get('/',function(req,res)
+app.get('/',passport.authenticate('local',{session:false}),function(req,res)
 {
     res.send("welcome to our hotel");
 })
+
+
+
 const personRoutes=require('./routes/personRouter');
 
 const menuItemRoutes=require('./routes/menuItemRoutes');
@@ -143,11 +142,7 @@ const menuItemRoutes=require('./routes/menuItemRoutes');
 app.use('/person',personRoutes);
 app.use('/menu',menuItemRoutes);
 
-app.listen(PORT,()=>
+app.listen(3000,()=>
 {
     console.log("Server is listening on the port 3000");
 });
-
-//http://localhost:3000/person?username=prashant&password=prashant@123
-
-
