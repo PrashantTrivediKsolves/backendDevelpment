@@ -2,6 +2,7 @@ const mongoose=require('mongoose');
 
 const bcrypt=require('bcrypt');
 
+
 // define the schema
 
 const personSchema=new mongoose.Schema({
@@ -54,7 +55,7 @@ personSchema.pre('save',async function(next)
     {
         return next();
     }
-    
+
     try{
         // hash password generation
         const salt=await bcrypt.genSalt(10);
